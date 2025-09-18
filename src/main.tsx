@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import ThemeWatcher from "./components/ThemeWatcher.tsx";
 
-import "virtual:plugins"; //заімпортує мені всі файлм modules
+// import "virtual:plugins"; //заімпортує мені всі файлм
 
 import "./index.css";
 import App from "./App.tsx";
