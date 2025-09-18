@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "virtual:plugins"; //заімпортує мені всі файлм
+// import "virtual:plugins"; //заімпортує мені всі файлм
 
 import "./index.css";
 import App from "./App.tsx";
