@@ -1,5 +1,4 @@
-import data from "../data/news.json";
-import "virtual:plugins";
+import data from "../date/news.json";
 
 export type News = {
 	id: string;

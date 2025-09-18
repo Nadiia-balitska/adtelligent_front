@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const schema = z.object({
-	name: z.string().min(2),
+	name: z.string().min(5),
 	email: z.string().email(),
-	password: z.string().min(6),
+	password: z.string().min(3),
 });
 type Form = z.infer<typeof schema>;
 
@@ -19,7 +19,9 @@ export default function Register() {
 
 	return (
 		<div className="mx-auto mt-10 max-w-sm space-y-4">
-			<h1 className="text-2xl font-semibold">Реєстрація</h1>
+			<h1 className="ttext-2xl font-bold text-zinc-900 dark:text-zinc-100">
+				Реєстрація
+			</h1>
 			<form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
 				<input
 					className="w-full rounded border p-2"
@@ -47,7 +49,7 @@ export default function Register() {
 					<p className="text-sm text-red-600">{errors.password.message}</p>
 				)}
 				<button
-					type="button"
+					type="submit"
 					className="rounded bg-emerald-600 px-4 py-2 text-white"
 				>
 					Зареєструватись
