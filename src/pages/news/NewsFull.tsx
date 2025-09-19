@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import BackButton from "../../components/Buttons/BackButton";
 import { fetchNewsById } from "../../services/news";
 
 export default function NewsFull() {
@@ -16,13 +17,7 @@ export default function NewsFull() {
 	return (
 		<div className="min-h-[calc(100vh-64px)] bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
 			<div className="mx-auto max-w-3xl space-y-4 p-6">
-				<button
-					type="button"
-					onClick={() => nav(-1)}
-					className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-				>
-					← Назад
-				</button>
+				<BackButton onClick={() => nav(-1)}>Назад</BackButton>
 
 				<h1 className="text-2xl font-bold">{data.title}</h1>
 
