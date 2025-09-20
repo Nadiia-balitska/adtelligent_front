@@ -2,23 +2,24 @@ name: Biome
 
 on:
   pull_request:
+    branches: [main]     
   push:
-    branches: [main]
+    branches: [main]     
 
 jobs:
   lint:
+    name: Biome          
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'   # LTS; підійде і 22, якщо хочеш
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Install deps
-        run: npm ci
-
-      - name: Biome check
-        run: npx biome check .
+      - run: npm ci
+      - run: npx biome --version
+      - run: npx biome check --reporter=github .
