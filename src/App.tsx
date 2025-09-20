@@ -11,7 +11,7 @@ const NewsFull = lazy(() => import("./pages/news/NewsFull"));
 function App() {
 	return (
 		<Routes>
-			<Route element={<Layout />}>
+			<Route path="/" element={<Layout />}>
 				<Route path="/" element={<NewsFeed />} />
 				<Route path="/news/:id" element={<NewsFull />} />
 				<Route path="/login" element={<Login />} />

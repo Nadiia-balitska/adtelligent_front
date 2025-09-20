@@ -23,3 +23,10 @@ body {
 	min-width: 320px;
 	min-height: 100vh;
 }
+h1,
+h2,
+h3,
+label,
+p {
+	color: rgb(118, 118, 127);
+}
