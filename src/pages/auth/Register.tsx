@@ -3,17 +3,30 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import TextField from "../../components/form/TextField";
 import schema from "../../schemas/schemasRegister";
-
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { register } from "../../services/api";
 type Form = z.infer<typeof schema>;
 
 export default function Register() {
+
+	 const navigate = useNavigate();
+  const [apiError, setApiError] = useState<string | null>(null);
 	const {
-		register,
+		register: formRegister,
 		handleSubmit,
 		formState: { errors, isSubmitting },
 	} = useForm<Form>({ resolver: zodResolver(schema), mode: "onTouched" });
 
-	const onSubmit = (v: Form) => console.log("register form:", v);
+  const onSubmit = async (v: Form) => {
+    try {
+      setApiError(null);
+	  await register(v.email, v.password);
+	  navigate("/"); 
+    } catch (e: any) {
+      setApiError(e?.message || "Помилка реєстрації");
+    }
+  };
 
 	return (
 		<div className="mx-auto mt-10 max-w-sm space-y-4">
@@ -25,7 +38,7 @@ export default function Register() {
 					label="Імʼя"
 					placeholder="Ваше імʼя"
 					autoComplete="name"
-					register={register}
+					register={formRegister}
 					error={errors.name}
 				/>
 
@@ -35,7 +48,7 @@ export default function Register() {
 					type="email"
 					placeholder="name@example.com"
 					autoComplete="email"
-					register={register}
+					register={formRegister}
 					error={errors.email}
 				/>
 
@@ -45,7 +58,7 @@ export default function Register() {
 					type="password"
 					placeholder="Пароль"
 					autoComplete="new-password"
-					register={register}
+					register={formRegister}
 					error={errors.password}
 				/>
 
