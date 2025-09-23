@@ -4,28 +4,32 @@ import type { z } from "zod";
 import TextField from "../../components/form/TextField";
 import schema from "../../schemas/schemasRegister";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { register } from "../../services/api";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AuthApi, queryKeys } from "../../services/api";
 type Form = z.infer<typeof schema>;
 
 export default function Register() {
 
-	 const navigate = useNavigate();
-  const [apiError, setApiError] = useState<string | null>(null);
+const navigate = useNavigate();
+	 const qc = useQueryClient();
+ const registerMutation = useMutation({
+    mutationKey: ["auth", "register"],
+    mutationFn: (data: Form) => AuthApi.register(data.email, data.password, data.name),
+    onSuccess: () => {
+		 qc.invalidateQueries({ queryKey: queryKeys.me });
+      navigate("/");
+    },
+  });
+
 	const {
 		register: formRegister,
 		handleSubmit,
 		formState: { errors, isSubmitting },
 	} = useForm<Form>({ resolver: zodResolver(schema), mode: "onTouched" });
 
-  const onSubmit = async (v: Form) => {
-    try {
-      setApiError(null);
-	  await register(v.email, v.password);
-	  navigate("/"); 
-    } catch (e: any) {
-      setApiError(e?.message || "Помилка реєстрації");
-    }
+const onSubmit = (v: Form) => {
+    registerMutation.mutate(v);
   };
 
 	return (

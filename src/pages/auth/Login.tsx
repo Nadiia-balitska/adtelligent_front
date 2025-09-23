@@ -3,16 +3,25 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import TextField from "../../components/form/TextField";
 import schema from "../../schemas/schemaLogin";
-import {login } from "../../services/api";
-import { useState } from "react";
+
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AuthApi, queryKeys } from "../../services/api";
 type Form = z.infer<typeof schema>;
 
 export default function Login() {
 	const navigate = useNavigate();
- const [apiError, setApiError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
+	const qc = useQueryClient();
+
+const loginMutation = useMutation({
+    mutationKey: ["auth", "login"],
+    mutationFn: (data: Form) => AuthApi.login(data.email, data.password),
+    onSuccess: () => {
+		   qc.invalidateQueries({ queryKey: queryKeys.me });
+      navigate("/");
+    },
+  });
 	const {
 		register,
 		handleSubmit,
@@ -21,18 +30,7 @@ export default function Login() {
 	} = useForm<Form>({ resolver: zodResolver(schema) });
 
 
-	 const onSubmit = async (v: Form) => {
-    try {
-      setApiError(null);
-      setLoading(true);
-      await login(v.email, v.password);   
-     navigate("/");                 
-    } catch (e: any) {
-      setApiError(e?.message || "Помилка входу");
-    } finally {
-      setLoading(false);
-    }
-  };
+	 const onSubmit = (v: Form) => loginMutation.mutate(v);
 
 	return (
 		<div className="mx-auto mt-10 max-w-sm space-y-4">
@@ -60,10 +58,9 @@ export default function Login() {
 
 				<button
 					type="submit"
-					disabled={loading}
 					className="w-full rounded-md bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
 				>
-					  {loading ? "Вхід..." : "Login"}
+					
 				</button>
 			</form>
 		</div>
