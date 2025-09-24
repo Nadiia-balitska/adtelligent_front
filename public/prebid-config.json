@@ -1,0 +1,14 @@
+{
+  "version": "10.10.0",
+  "modules": [
+    "adtelligentBidAdapter",
+    "bidmaticBidAdapter",
+    "consentManagementGpp",
+    "consentManagementTcf",
+    "gppControl_usnat",
+    "gppControl_usstates",
+    "gptPreAuction",
+    "storageControl",
+    "tcfControl"
+  ]
+}

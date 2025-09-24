@@ -1,6 +1,7 @@
-import { lazy } from "react";
+import { lazy, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import  adsVirtualPlugin  from "./plugins/virtual_ads.plugin";
 import "./App.css";
 import Layout from "./components/Layout";
 
@@ -8,10 +9,13 @@ const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
 const NewsFeed = lazy(() => import("./pages/news/NewsFeed"));
 const NewsFull = lazy(() => import("./pages/news/NewsFull"));
+const AdsView = lazy(() => import("./ads/component/AdsView.jsx"));
 function App() {
+	useEffect(() => { adsVirtualPlugin(); }, []);
 	return (
 		<Routes>
 			<Route path="/" element={<Layout />}>
+			 <Route path="/ads-logs" element={<AdsView />} />
 				<Route path="/" element={<NewsFeed />} />
 				<Route path="/news/:id" element={<NewsFull />} />
 				<Route path="/login" element={<Login />} />

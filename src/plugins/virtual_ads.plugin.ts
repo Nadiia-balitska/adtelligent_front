@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite';
 
-export default function adsVirtualPlugin(): Plugin {
+ function adsVirtualPlugin(): Plugin {
   const enable = process.env.VITE_ENABLE_ADS === 'true';
   return {
     name: 'virtual-ads',
@@ -19,4 +19,6 @@ export default function adsVirtualPlugin(): Plugin {
     },
   };
 }
+
+export default adsVirtualPlugin;
 

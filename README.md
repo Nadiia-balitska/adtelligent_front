@@ -1,69 +1,34 @@
-# React + TypeScript + Vite
+# Ads Module (Lecture 4)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Как запустить
+- `cp .env.example .env` и выставить:
+  - `VITE_ENABLE_ADS=true` — Prebid-модуль
+  - `VITE_ENABLE_ADS=false` — реклама выключена
+  - `VITE_ENABLE_ADS_GOOGLE=true` — *второй модуль через Google* (без Prebid)
+- `npm run dev` / `build`
 
-Currently, two official plugins are available:
+## Архитектура
+- Виртуальный импорт `virtual:ads` (Vite plugin) подменяет экспорт в зависимости от env.
+- Prebid-модуль: `src/ads/prebid/*` (2 ad units, Adtelligent + Bidmatic).
+- GPT-интеграция: `google-gpt.ts` (disableInitialLoad → setTargetingForGPTAsync → display/refresh).
+- Страница логов: `AdsLogsView.tsx` (подписка на `pbjs.onEvent` + дамп `pbjs.getEvents()`).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Ивенты и логи
+- Подписки: `auctionInit`, `bidRequested`, `bidResponse`, `auctionEnd`, `bidWon`, `adRender*`, `setTargeting`, `bidTimeout`.
+- Почему рендер «на bidWon» не сработал:
+  - `bidWon` приходит *когда рендер уже вызван* (обычно GPT-креатив вызывает `pbjs.renderAd`).
+  - Без корректных prebid-креативов в GAM и без `setTargetingForGPTAsync()`/`display()` событие не придет и показ не состоится. :contentReference[oaicite:5]{index=5}
 
-## Expanding the ESLint configuration
+## pbjs.getHighestCpmBids vs onEvent('bidResponse')
+- `onEvent('bidResponse')` — поток для логов и аналитики в реальном времени.
+- `getHighestCpmBids` — снимок победителей после аукциона; в 3.x не возвращает уже отрендеренные биды. Используем после `requestBids`. :contentReference[oaicite:6]{index=6}
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Рефреш
+- Prebid: повторный `requestBids` → `setTargetingForGPTAsync()` → `googletag.pubads().refresh()`.
+- Google-модуль: периодический `googletag.pubads().refresh()`.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Ссылки
+- Publisher API + Events: Prebid.org :contentReference[oaicite:7]{index=7}  
+- Adapters: Adtelligent, Bidmatic :contentReference[oaicite:8]{index=8}  
+- GPT guide: Google Developers :contentReference[oaicite:9]{index=9}
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
