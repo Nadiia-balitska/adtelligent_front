@@ -46,7 +46,6 @@ export default function virtualRoutes() {
 			});
 
 			return `
-        // Автогенеровано virtual:routes
         export const routes = [${records.join(",")}];
       `;
 		},
