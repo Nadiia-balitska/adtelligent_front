@@ -1,34 +1,42 @@
-# Ads Module (Lecture 4)
+# Advertisement
 
-## Как запустить
-- `cp .env.example .env` и выставить:
-  - `VITE_ENABLE_ADS=true` — Prebid-модуль
-  - `VITE_ENABLE_ADS=false` — реклама выключена
-  - `VITE_ENABLE_ADS_GOOGLE=true` — *второй модуль через Google* (без Prebid)
-- `npm run dev` / `build`
+- Prebid.js (custom build) with **Adtelligent** + **Bidmatic**
+- Google Publisher Tag (GPT/GAM) rendering
+- Virtual import with ENV toggles (enable/disable; switch to Google-only)
+- Auction event logs page
+- Auto-refresh for both modes
+- Research notes (events, `bidWon`, `getHighestCpmBids` vs `onEvent('bidResponse')`, etc.)
 
-## Архитектура
-- Виртуальный импорт `virtual:ads` (Vite plugin) подменяет экспорт в зависимости от env.
-- Prebid-модуль: `src/ads/prebid/*` (2 ad units, Adtelligent + Bidmatic).
-- GPT-интеграция: `google-gpt.ts` (disableInitialLoad → setTargetingForGPTAsync → display/refresh).
-- Страница логов: `AdsLogsView.tsx` (подписка на `pbjs.onEvent` + дамп `pbjs.getEvents()`).
+## How to start
+- `cp .env.example .env` and set:
+  - `VITE_ENABLE_ADS=true` — enable the Prebid module
+  - `VITE_ENABLE_ADS=false` — disable ads
+  - `VITE_ENABLE_ADS_GOOGLE=true` — enable the second module via Google (without Prebid)
+- Run: `npm run dev` or `npm run build`
 
-## Ивенты и логи
-- Подписки: `auctionInit`, `bidRequested`, `bidResponse`, `auctionEnd`, `bidWon`, `adRender*`, `setTargeting`, `bidTimeout`.
-- Почему рендер «на bidWon» не сработал:
-  - `bidWon` приходит *когда рендер уже вызван* (обычно GPT-креатив вызывает `pbjs.renderAd`).
-  - Без корректных prebid-креативов в GAM и без `setTargetingForGPTAsync()`/`display()` событие не придет и показ не состоится. :contentReference[oaicite:5]{index=5}
+## Architecture
+- Virtual import `virtual:ads` (Vite plugin) swaps the export based on env.
+- Prebid module: `src/ads/prebid/*` (two ad units, Adtelligent + Bidmatic).
+- GPT integration: `google-gpt.ts` (flow: `disableInitialLoad` → `setTargetingForGPTAsync` → `display/refresh`).
+- Logs page: `AdsLogsView.tsx` (subscribes to `pbjs.onEvent` + dumps `pbjs.getEvents()`).
 
-## pbjs.getHighestCpmBids vs onEvent('bidResponse')
-- `onEvent('bidResponse')` — поток для логов и аналитики в реальном времени.
-- `getHighestCpmBids` — снимок победителей после аукциона; в 3.x не возвращает уже отрендеренные биды. Используем после `requestBids`. :contentReference[oaicite:6]{index=6}
+## Events & logs
+- Subscribed events: `auctionInit`, `bidRequested`, `bidResponse`, `auctionEnd`, `bidWon`, `adRender*`, `setTargeting`, `bidTimeout`.
+- Why rendering didn’t happen “on `bidWon`”:
+   because bidWon arrives earlier, and the render has already been invoked
+  (it’s done automatically via pbjs.renderAd).
+   If you don’t call pbjs.setTargetingForGPTAsync() and then display()/refresh(),
+   bidWon may not fire and the banner will not appear.
 
-## Рефреш
-- Prebid: повторный `requestBids` → `setTargetingForGPTAsync()` → `googletag.pubads().refresh()`.
-- Google-модуль: периодический `googletag.pubads().refresh()`.
+## `pbjs.getHighestCpmBids` vs `onEvent('bidResponse')`
+- `onEvent('bidResponse')` — real-time stream for logs and analytics.
+- `getHighestCpmBids` — snapshot of winners after the auction; in 3.x it does not return already rendered bids. Use after `requestBids`.
 
-## Ссылки
-- Publisher API + Events: Prebid.org :contentReference[oaicite:7]{index=7}  
-- Adapters: Adtelligent, Bidmatic :contentReference[oaicite:8]{index=8}  
-- GPT guide: Google Developers :contentReference[oaicite:9]{index=9}
+## Refresh
+- Prebid: run a new `requestBids` → `setTargetingForGPTAsync()` → `googletag.pubads().refresh()`.
+- Google-only: periodic `googletag.pubads().refresh()`.
 
+## Links
+- Publisher API & Events — Prebid.org  
+- Adapters — Adtelligent, Bidmatic  
+- GPT guide — Google Developers

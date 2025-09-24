@@ -1,7 +1,7 @@
 import { lazy, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { initAds } from "virtual:ads";
 
-import  adsVirtualPlugin  from "./plugins/virtual_ads.plugin";
 import "./App.css";
 import Layout from "./components/Layout";
 
@@ -11,7 +11,9 @@ const NewsFeed = lazy(() => import("./pages/news/NewsFeed"));
 const NewsFull = lazy(() => import("./pages/news/NewsFull"));
 const AdsView = lazy(() => import("./ads/component/AdsView.jsx"));
 function App() {
-	useEffect(() => { adsVirtualPlugin(); }, []);
+	useEffect(() => { initAds();
+
+	 }, []);
 	return (
 		<Routes>
 			<Route path="/" element={<Layout />}>

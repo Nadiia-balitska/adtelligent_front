@@ -31,8 +31,8 @@ function wireEventsForLogs() {
   });
 
   
-/! чому не рендерилось на bidWon: /
-//     бо bidWon приходить раніше, а рендер вже викликано
+// ? чому не рендерилось на bidWon: 
+//    бо bidWon приходить раніше, а рендер вже викликано
 //    (він автоматично через pbjs.renderAd робиться).
 //    Якщо не зробити pbjs.setTargetingForGPTAsync() і потім display()/refresh(), то bidWon може не виконатись і банер не з’явиться.
   
