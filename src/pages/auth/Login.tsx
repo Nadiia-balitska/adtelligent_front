@@ -60,7 +60,7 @@ const loginMutation = useMutation({
 					type="submit"
 					className="w-full rounded-md bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
 				>
-					
+					Login
 				</button>
 			</form>
 		</div>

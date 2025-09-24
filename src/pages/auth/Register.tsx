@@ -71,7 +71,7 @@ const onSubmit = (v: Form) => {
 					disabled={isSubmitting}
 					className="w-full rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
 				>
-					{isSubmitting ? "Відправляю…" : "Зареєструватись"}
+					{isSubmitting ? "Sendiing..." : "Register"}
 				</button>
 			</form>
 		</div>
