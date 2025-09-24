@@ -1,7 +1,9 @@
+/** biome-ignore-all lint/suspicious/useIterableCallbackReturn: <explanation> */
+
 import { AD_UNITS, SLOT_DEFS } from './ad-units';
 import { loadGpt, defineSlots, displayAll, refreshAllGpt } from './google-gpt';
 
-const PREBID_SRC = './public/prebid10.10.0.js';
+const PREBID_SRC = '/public/prebid10.10.0.js';
 
 function loadPrebid() {
   return new Promise((resolve) => {
@@ -21,7 +23,6 @@ function wireEventsForLogs() {
     'bidWon','adRenderSucceeded','adRenderFailed','setTargeting','bidTimeout'
   ];
   window.pbjs.que.push(() => {
-    // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
     events.forEach(ev => window.pbjs.onEvent(ev, (args) => {
       window.__prebidLogs = window.__prebidLogs || [];
       const rec = { ts: Date.now(), event: ev, args };

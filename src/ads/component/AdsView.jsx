@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-export default function AdsLView() {
+export default function AdsView() {
   const [rows, setRows] = React.useState([]);
 
   React.useEffect(() => {
