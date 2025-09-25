@@ -6,7 +6,6 @@ import compression from "vite-plugin-compression";
 import inspect from "vite-plugin-inspect";
 import svgr from "vite-plugin-svgr";
 import virtualModules from "./src/plugins/virtual_modules.plugin.ts";
-import virtualRoutes from "./src/plugins/virtual_routes.plugin.ts";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -18,7 +17,6 @@ export default defineConfig({
 		compression(),
 		visualizer({ open: true }),
 		virtualModules(),
-		virtualRoutes(),
 	],
 	build: {
 		target: "es2019",

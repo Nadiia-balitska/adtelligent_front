@@ -1,69 +1,42 @@
-# React + TypeScript + Vite
+# Advertisement
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+- Prebid.js (custom build) with **Adtelligent** + **Bidmatic**
+- Google Publisher Tag (GPT/GAM) rendering
+- Virtual import with ENV toggles (enable/disable; switch to Google-only)
+- Auction event logs page
+- Auto-refresh for both modes
+- Research notes (events, `bidWon`, `getHighestCpmBids` vs `onEvent('bidResponse')`, etc.)
 
-Currently, two official plugins are available:
+## How to start
+- `cp .env.example .env` and set:
+  - `VITE_ENABLE_ADS=true` — enable the Prebid module
+  - `VITE_ENABLE_ADS=false` — disable ads
+  - `VITE_ENABLE_ADS_GOOGLE=true` — enable the second module via Google (without Prebid)
+- Run: `npm run dev` or `npm run build`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Architecture
+- Virtual import `virtual:ads` (Vite plugin) swaps the export based on env.
+- Prebid module: `src/ads/prebid/*` (two ad units, Adtelligent + Bidmatic).
+- GPT integration: `google-gpt.ts` (flow: `disableInitialLoad` → `setTargetingForGPTAsync` → `display/refresh`).
+- Logs page: `AdsLogsView.tsx` (subscribes to `pbjs.onEvent` + dumps `pbjs.getEvents()`).
 
-## Expanding the ESLint configuration
+## Events & logs
+- Subscribed events: `auctionInit`, `bidRequested`, `bidResponse`, `auctionEnd`, `bidWon`, `adRender*`, `setTargeting`, `bidTimeout`.
+- Why rendering didn’t happen “on `bidWon`”:
+   because bidWon arrives earlier, and the render has already been invoked
+  (it’s done automatically via pbjs.renderAd).
+   If you don’t call pbjs.setTargetingForGPTAsync() and then display()/refresh(),
+   bidWon may not fire and the banner will not appear.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## `pbjs.getHighestCpmBids` vs `onEvent('bidResponse')`
+- `onEvent('bidResponse')` — real-time stream for logs and analytics.
+- `getHighestCpmBids` — snapshot of winners after the auction; in 3.x it does not return already rendered bids. Use after `requestBids`.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Refresh
+- Prebid: run a new `requestBids` → `setTargetingForGPTAsync()` → `googletag.pubads().refresh()`.
+- Google-only: periodic `googletag.pubads().refresh()`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Links
+- Publisher API & Events — Prebid.org  
+- Adapters — Adtelligent, Bidmatic  
+- GPT guide — Google Developers
