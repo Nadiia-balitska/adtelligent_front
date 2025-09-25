@@ -17,7 +17,6 @@
 		"@tanstack/react-query-devtools": "^5.89.0",
 		"clsx": "^2.1.1",
 		"fs": "^0.0.1-security",
-		"gulp": "^5.0.1",
 		"path": "^0.12.7",
 		"react": "^19.1.1",
 		"react-dom": "^19.1.1",
