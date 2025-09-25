@@ -3,7 +3,7 @@
 import { AD_UNITS, SLOT_DEFS } from './ad-units';
 import { loadGpt, defineSlots, displayAll, refreshAllGpt } from './google-gpt';
 
-const PREBID_SRC = '/public/prebid10.10.0.js';
+const PREBID_SRC = '/prebid10.10.0.js';
 
 function loadPrebid() {
   return new Promise((resolve) => {

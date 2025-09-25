@@ -4,6 +4,7 @@ import { initAds } from "virtual:ads";
 
 import "./App.css";
 import Layout from "./components/Layout";
+import "virtual:plugins"; //заімпортує мені всі файлм
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
