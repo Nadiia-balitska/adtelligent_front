@@ -1,4 +1,4 @@
-
+const API = import.meta.env?.VITE_ADSERVER || "http://localhost:3000";
 export const AD_UNITS = [
   {
     code: 'div-gpt-top',
@@ -9,15 +9,19 @@ export const AD_UNITS = [
     },
     bids: [
       {
-        bidder: 'adtelligent',
+        bidder: 'balitska',
         params: {
+          endpoint: `${API}/api/balitska/get`,
+           adType: "BANNER",
           placementId: '350975'
         }
       },
       {
-        bidder: 'bidmatic',
+        bidder: 'balitska',
         params: {
-          placement: '886409'
+          endpoint: `${API}/api/balitska/get`,
+           adType: "BANNER",
+          placement: '886409',
         }
       }
     ]
@@ -31,15 +35,19 @@ export const AD_UNITS = [
     },
     bids: [
       {
-        bidder: 'adtelligent',
+        bidder: 'balitska',
         params: {
-          placementId: '350975'
+          placementId: '350975',
+          endpoint: `${API}/api/balitska/get`,
+           adType: "BANNER",
         }
       },
       {
-        bidder: 'bidmatic',
+        bidder: 'balitska',
         params: {
-          placement: '886409'
+          placement: '886409',
+          endpoint: `${API}/api/balitska/get`,
+           adType: "BANNER",
         }
       }
     ]
