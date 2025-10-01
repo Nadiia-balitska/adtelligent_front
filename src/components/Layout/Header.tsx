@@ -28,6 +28,13 @@ const Header = () => {
             >
               Register
             </Link>
+
+            <Link
+              to="/stats"
+              className="rounded-lg px-3 py-2 text-sm font-medium opacity-80 transition hover:opacity-100 hover:bg-zinc-900/5 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
+            >
+              Statistic table
+            </Link>
           </div>
         </div>
 
