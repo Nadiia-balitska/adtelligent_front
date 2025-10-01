@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { fetchNews } from "../../services/news";
-import '../../shadow/LineItemFormElement';
-import AdminPage from "../AdminPage";
+import AdminPage from "../../components/AdminPage";
 
 export default function NewsFeed() {
 	const { data, isLoading } = useQuery({

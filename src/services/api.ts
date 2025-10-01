@@ -1,5 +1,5 @@
 export const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  import.meta.env.VITE_BACKEND;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -8,7 +8,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
 
-  let data: any = null;
+  let data = null;
   try {
     data = await res.json();
   } catch {}
