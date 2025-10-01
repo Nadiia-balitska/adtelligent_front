@@ -72,6 +72,12 @@ function requestAuctionAndDisplay() {
     window.pbjs.requestBids({
       timeout: 1000,
       bidsBackHandler: () => {
+        const winners = window.pbjs.getHighestCpmBids();
+        if (winners.length === 0) {
+          console.warn("⚠️ No ads returned — skipping GPT render");
+          return;
+        }
+        
         window.pbjs.setTargetingForGPTAsync();
         displayAll(SLOT_DEFS);
       },
