@@ -2,6 +2,7 @@
 
 import { AD_UNITS, SLOT_DEFS } from "./ad-units";
 import { loadGpt, defineSlots, displayAll, refreshAllGpt } from "./google-gpt";
+import "./analytics";
 
 const PREBID_SRC = "/prebid.js";
 
