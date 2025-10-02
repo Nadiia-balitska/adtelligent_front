@@ -1,4 +1,5 @@
-import  { useEffect, useMemo, useState, type JSX } from "react";
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
+import { useEffect, useMemo, useState, type JSX } from "react";
 import {
   ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -10,7 +11,6 @@ import type {
   FieldKey,
   Filters,
   IndexableStatRow,
-  RawEvent,
   ReportMode,
   StatRow,
   ViewTemplate,
@@ -18,8 +18,15 @@ import type {
   ExportRow,
 } from "../../types/statistics";
 
+type ReportResponse = {
+  page: number;
+  page_size: number;
+  total: number;
+  rows: StatRow[];
+};
 
-const ANALYTICS_LIST_URL = "/stat";
+const API_BASE =
+  (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") || "";
 
 const ALL_FIELDS: FieldDef[] = [
   { key: "hour",         label: "Hour" },
@@ -47,19 +54,6 @@ const DEFAULT_FILTERS: Filters = {
 };
 
 const LOCAL_STORAGE_VIEWS_KEY = "stats_views_v1";
-
-
-function toDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-function toHourOnly(date: Date): string {
-  return `${String(date.getUTCHours()).padStart(2, "0")}:00`;
-}
-function parseEventTime(value: string | number | Date): Date {
-  if (value instanceof Date) return value;
-  if (typeof value === "number") return new Date(value);
-  return new Date(value);
-}
 
 function formatNumber(value: ExportPrimitive): string {
   if (value == null) return "";
@@ -108,7 +102,7 @@ async function downloadExcel(filename: string, rows: ExportRow[]): Promise<void>
 
 function toExportRows(reportRows: StatRow[]): ExportRow[] {
   return reportRows.map((row) => {
-    const indexable: IndexableStatRow = row as IndexableStatRow;
+    const indexable = row as unknown as IndexableStatRow;
     const result: ExportRow = {};
     Object.keys(indexable).forEach((key) => {
       result[key] = indexable[key];
@@ -118,199 +112,130 @@ function toExportRows(reportRows: StatRow[]): ExportRow[] {
 }
 
 function getCellValue(row: StatRow, key: string): ExportPrimitive {
-  const indexable: IndexableStatRow = row as IndexableStatRow;
+  const indexable = row as unknown as IndexableStatRow;
   return indexable[key];
 }
 
-
-function filterRawEvents(rawEvents: RawEvent[], filters: Filters): RawEvent[] {
-  const fromDate = new Date(filters.dateFrom + "T00:00:00.000Z");
-  const toDate = new Date(filters.dateTo + "T23:59:59.999Z");
-  const cpmMin = filters.cpmMin ? Number(filters.cpmMin) : undefined;
-  const cpmMax = filters.cpmMax ? Number(filters.cpmMax) : undefined;
-
-  return rawEvents.filter((eventItem) => {
-    const ts = parseEventTime(eventItem.timestamp);
-    if (ts < fromDate || ts > toDate) return false;
-
-    if (filters.event && eventItem.event !== filters.event) return false;
-    if (filters.bidder && eventItem.bidder !== filters.bidder) return false;
-    if (filters.creativeId && eventItem.creativeId !== filters.creativeId) return false;
-    if (filters.adUnitCode && eventItem.adUnitCode !== filters.adUnitCode) return false;
-    if (filters.geo && eventItem.geo !== filters.geo) return false;
-
-    if (typeof cpmMin === "number" && eventItem.cpm != null && eventItem.cpm < cpmMin) return false;
-    if (typeof cpmMax === "number" && eventItem.cpm != null && eventItem.cpm > cpmMax) return false;
-
-    return true;
+function buildQuery(params: Record<string, string | number | undefined>): string {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") search.set(key, String(value));
   });
+  return search.toString();
 }
 
-
-function aggregateRowsByDimensions(
-  events: RawEvent[],
-  reportMode: ReportMode,
-  dimensions: DimensionKey[]
-): StatRow[] {
-  type Bucket = {
-    dims: Partial<Record<DimensionKey, string>>;
-    users: Set<string>;
-    auctions: number;
-    bids: number;
-    wins: number;
-    cpmSum: number;
-    cpmCount: number;
-  };
-
-  const buckets = new Map<string, Bucket>();
-
-  for (const eventItem of events) {
-    const dt = parseEventTime(eventItem.timestamp);
-    const dateStr = toDateOnly(dt);
-    const hourStr =
-      reportMode === "hour" && dimensions.includes("hour") ? toHourOnly(dt) : undefined;
-
-    const dimValues: Partial<Record<DimensionKey, string>> = { date: dateStr };
-    if (hourStr) dimValues.hour = hourStr;
-    if (dimensions.includes("event") && eventItem.event) dimValues.event = eventItem.event;
-    if (dimensions.includes("bidder") && eventItem.bidder) dimValues.bidder = eventItem.bidder;
-    if (dimensions.includes("creativeId") && eventItem.creativeId) dimValues.creativeId = eventItem.creativeId;
-    if (dimensions.includes("adUnitCode") && eventItem.adUnitCode) dimValues.adUnitCode = eventItem.adUnitCode;
-    if (dimensions.includes("geo") && eventItem.geo) dimValues.geo = eventItem.geo;
-
-    const keyParts: string[] = ["date"];
-    if (dimensions.includes("hour")) keyParts.push("hour");
-    if (dimensions.includes("event")) keyParts.push("event");
-    if (dimensions.includes("bidder")) keyParts.push("bidder");
-    if (dimensions.includes("creativeId")) keyParts.push("creativeId");
-    if (dimensions.includes("adUnitCode")) keyParts.push("adUnitCode");
-    if (dimensions.includes("geo")) keyParts.push("geo");
-
-    const groupKey = keyParts.map((k) => dimValues[k as DimensionKey] ?? "").join("|");
-
-    const bucket =
-      buckets.get(groupKey) ??
-      {
-        dims: dimValues,
-        users: new Set<string>(),
-        auctions: 0,
-        bids: 0,
-        wins: 0,
-        cpmSum: 0,
-        cpmCount: 0,
-      };
-
-    if (eventItem.userId) bucket.users.add(eventItem.userId);
-    if (eventItem.event === "auctionInit") bucket.auctions += 1;
-    if (eventItem.event === "bidResponse") bucket.bids += 1;
-    if (eventItem.event === "bidWon") {
-      bucket.wins += 1;
-      if (typeof eventItem.cpm === "number") {
-        bucket.cpmSum += eventItem.cpm;
-        bucket.cpmCount += 1;
-      }
-    }
-
-    buckets.set(groupKey, bucket);
-  }
-
-  const rows: StatRow[] = [];
-  for (const bucket of buckets.values()) {
-    const row: StatRow = {
-      date: bucket.dims.date!,
-      hour: bucket.dims.hour,
-      event: bucket.dims.event,
-      bidder: bucket.dims.bidder,
-      creativeId: bucket.dims.creativeId,
-      adUnitCode: bucket.dims.adUnitCode,
-      geo: bucket.dims.geo,
-      unique_users: bucket.users.size,
-      auctions: bucket.auctions,
-      bids: bucket.bids,
-      wins: bucket.wins,
-      win_rate: bucket.auctions ? +(bucket.wins / bucket.auctions * 100).toFixed(2) : 0,
-      avg_cpm: bucket.cpmCount ? +(bucket.cpmSum / bucket.cpmCount).toFixed(3) : 0,
-    };
-    rows.push(row);
-  }
-
-  rows.sort((a, b) => {
-    const aKey = `${a.date}|${a.hour ?? ""}|${a.event ?? ""}|${a.bidder ?? ""}|${a.creativeId ?? ""}|${a.adUnitCode ?? ""}|${a.geo ?? ""}`;
-    const bKey = `${b.date}|${b.hour ?? ""}|${b.event ?? ""}|${b.bidder ?? ""}|${b.creativeId ?? ""}|${b.adUnitCode ?? ""}|${b.geo ?? ""}`;
-    return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+async function fetchReport(
+  dimensions: DimensionKey[],
+  fields: FieldKey[],
+  filters: Filters,
+  page: number,
+  pageSize: number
+): Promise<ReportResponse> {
+  const query = buildQuery({
+    date_from: filters.dateFrom,
+    date_to: filters.dateTo,
+    dimensions: dimensions.join(","),
+    fields: fields.join(","),
+    event: filters.event,
+    bidder: filters.bidder,
+    creativeId: filters.creativeId,
+    adUnitCode: filters.adUnitCode,
+    geo: filters.geo,
+    cpm_min: filters.cpmMin ? Number(filters.cpmMin) : undefined,
+    cpm_max: filters.cpmMax ? Number(filters.cpmMax) : undefined,
+    page,
+    page_size: pageSize,
   });
 
-  return rows;
+  const response = await fetch(`${API_BASE}/stat/report?${query}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<ReportResponse>;
 }
 
+function buildExportUrl(
+  format: "csv" | "xlsx",
+  dimensions: DimensionKey[],
+  fields: FieldKey[],
+  filters: Filters
+): string {
+  const query = buildQuery({
+    date_from: filters.dateFrom,
+    date_to: filters.dateTo,
+    dimensions: dimensions.join(","),
+    fields: fields.join(","),
+    event: filters.event,
+    bidder: filters.bidder,
+    creativeId: filters.creativeId,
+    adUnitCode: filters.adUnitCode,
+    geo: filters.geo,
+    cpm_min: filters.cpmMin,
+    cpm_max: filters.cpmMax,
+  });
+  return `${API_BASE}/stat/export.${format}?${query}`;
+}
 
 export default function StatsPage(): JSX.Element {
-  const [selectedDimensions, setSelectedDimensions] = useState<DimensionKey[]>([
-    "hour",
-    "bidder",
-  ]);
-
+  const [selectedDimensions, setSelectedDimensions] = useState<DimensionKey[]>(["hour", "bidder"]);
   const [selectedFields, setSelectedFields] = useState<FieldKey[]>([
     "hour", "auctions", "bids", "wins", "win_rate", "avg_cpm", "unique_users",
   ]);
-
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
-  const [rawEvents, setRawEvents] = useState<RawEvent[]>([]);
   const [reportRows, setReportRows] = useState<StatRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [pageSize, setPageSize] = useState<number>(100);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalRows, setTotalRows] = useState<number>(0);
 
   const [savedViews, setSavedViews] = useState<ViewTemplate[]>(
     JSON.parse(localStorage.getItem(LOCAL_STORAGE_VIEWS_KEY) || "[]")
   );
   const [viewName, setViewName] = useState<string>("");
 
-  async function loadRawEvents(): Promise<void> {
+  async function loadReport(): Promise<void> {
     setIsLoading(true);
     try {
-      const response = await fetch(ANALYTICS_LIST_URL);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload: RawEvent[] = await response.json();
-      setRawEvents(payload);
+      const data = await fetchReport(
+        selectedDimensions,
+        selectedFields.filter((f) => f !== "hour"),
+        filters,
+        currentPage,
+        pageSize
+      );
+      setReportRows(data.rows);
+      setTotalRows(data.total);
     } catch (error) {
-      console.error("Failed to load events:", error);
-      setRawEvents([]);
+      console.error("Failed to load report:", error);
+      setReportRows([]);
+      setTotalRows(0);
     } finally {
       setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadRawEvents();
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  }, [loadRawEvents]);
+    void loadReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDimensions, selectedFields, filters, currentPage, pageSize, loadReport]);
 
-  useEffect(() => {
-    const filtered = filterRawEvents(rawEvents, filters);
-    const aggregated = aggregateRowsByDimensions(filtered, filters.report, selectedDimensions);
-    setReportRows(aggregated);
-    setCurrentPage(1);
-  }, [rawEvents, filters, selectedDimensions]);
-
-  const totalPages = Math.max(1, Math.ceil(reportRows.length / pageSize));
-  const pagedRows = useMemo(
-    () => reportRows.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [reportRows, currentPage, pageSize]
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(totalRows / pageSize)),
+    [totalRows, pageSize]
   );
 
   function toggleField(fieldKey: FieldKey): void {
     setSelectedFields((prev) =>
       prev.includes(fieldKey) ? prev.filter((k) => k !== fieldKey) : [...prev, fieldKey]
     );
+    setCurrentPage(1);
   }
 
   function toggleDimension(dimension: DimensionKey): void {
     setSelectedDimensions((prev) =>
       prev.includes(dimension) ? prev.filter((d) => d !== dimension) : [...prev, dimension]
     );
+    setCurrentPage(1);
   }
 
   function saveCurrentView(): void {
@@ -335,6 +260,7 @@ export default function StatsPage(): JSX.Element {
     setFilters(view.filters);
     setPageSize(view.pageSize);
     setViewName(view.name);
+    setCurrentPage(1);
   }
 
   const chartData = reportRows;
@@ -349,7 +275,7 @@ export default function StatsPage(): JSX.Element {
           <input
             type="date"
             value={filters.dateFrom}
-            onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+            onChange={(e) => { setFilters({ ...filters, dateFrom: e.target.value }); setCurrentPage(1); }}
             className="border rounded px-2 py-1"
           />
         </div>
@@ -358,13 +284,13 @@ export default function StatsPage(): JSX.Element {
           <input
             type="date"
             value={filters.dateTo}
-            onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+            onChange={(e) => { setFilters({ ...filters, dateTo: e.target.value }); setCurrentPage(1); }}
             className="border rounded px-2 py-1"
           />
         </div>
         <select
           value={filters.report}
-          onChange={(e) => setFilters({ ...filters, report: e.target.value as ReportMode })}
+          onChange={(e) => { setFilters({ ...filters, report: e.target.value as ReportMode }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         >
           <option value="date">By Date</option>
@@ -374,48 +300,49 @@ export default function StatsPage(): JSX.Element {
         <input
           placeholder="Event"
           value={filters.event || ""}
-          onChange={(e) => setFilters({ ...filters, event: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, event: e.target.value }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         />
         <input
           placeholder="Bidder"
           value={filters.bidder || ""}
-          onChange={(e) => setFilters({ ...filters, bidder: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, bidder: e.target.value }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         />
         <input
           placeholder="Creative ID"
           value={filters.creativeId || ""}
-          onChange={(e) => setFilters({ ...filters, creativeId: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, creativeId: e.target.value }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         />
         <input
           placeholder="Ad Unit Code"
           value={filters.adUnitCode || ""}
-          onChange={(e) => setFilters({ ...filters, adUnitCode: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, adUnitCode: e.target.value }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         />
         <input
           placeholder="GEO"
           value={filters.geo || ""}
-          onChange={(e) => setFilters({ ...filters, geo: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, geo: e.target.value }); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         />
         <input
           placeholder="CPM ≥"
           value={filters.cpmMin || ""}
-          onChange={(e) => setFilters({ ...filters, cpmMin: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, cpmMin: e.target.value }); setCurrentPage(1); }}
           className="border rounded w-24 px-2 py-1"
         />
         <input
           placeholder="CPM ≤"
           value={filters.cpmMax || ""}
-          onChange={(e) => setFilters({ ...filters, cpmMax: e.target.value })}
+          onChange={(e) => { setFilters({ ...filters, cpmMax: e.target.value }); setCurrentPage(1); }}
           className="border rounded w-24 px-2 py-1"
         />
 
-        <button type="button" 
-          onClick={() => void loadRawEvents()}
+        <button
+          type="button"
+          onClick={() => void loadReport()}
           className="bg-indigo-600 text-white px-3 py-1 rounded disabled:opacity-60"
           disabled={isLoading}
         >
@@ -429,7 +356,7 @@ export default function StatsPage(): JSX.Element {
             onChange={(e) => setViewName(e.target.value)}
             className="border rounded px-2 py-1"
           />
-          <button type="button"  onClick={saveCurrentView} className="bg-blue-600 text-white px-3 py-1 rounded">
+          <button type="button" onClick={saveCurrentView} className="bg-blue-600 text-white px-3 py-1 rounded">
             Save View
           </button>
           <select onChange={(e) => applyViewByName(e.target.value)} className="border rounded px-2 py-1">
@@ -445,7 +372,8 @@ export default function StatsPage(): JSX.Element {
 
       <div className="flex flex-wrap gap-2 mb-3">
         {ALL_DIMENSIONS.map((dim) => (
-          <button type="button" 
+          <button
+            type="button"
             key={dim.key}
             onClick={() => toggleDimension(dim.key)}
             className={`px-3 py-1 rounded-full text-sm border ${
@@ -461,7 +389,8 @@ export default function StatsPage(): JSX.Element {
 
       <div className="flex flex-wrap gap-2 mb-4">
         {ALL_FIELDS.map((field) => (
-          <button type="button"
+          <button
+            type="button"
             key={field.key}
             onClick={() => toggleField(field.key)}
             className={`px-3 py-1 rounded-full text-sm border ${
@@ -481,24 +410,12 @@ export default function StatsPage(): JSX.Element {
             <tr>
               <th className="px-3 py-2 text-left">Date</th>
 
-              {selectedDimensions.includes("hour") && (
-                <th className="px-3 py-2 text-left">Hour</th>
-              )}
-              {selectedDimensions.includes("event") && (
-                <th className="px-3 py-2 text-left">Event</th>
-              )}
-              {selectedDimensions.includes("bidder") && (
-                <th className="px-3 py-2 text-left">Adapter</th>
-              )}
-              {selectedDimensions.includes("creativeId") && (
-                <th className="px-3 py-2 text-left">Creative ID</th>
-              )}
-              {selectedDimensions.includes("adUnitCode") && (
-                <th className="px-3 py-2 text-left">Ad Unit Code</th>
-              )}
-              {selectedDimensions.includes("geo") && (
-                <th className="px-3 py-2 text-left">GEO</th>
-              )}
+              {selectedDimensions.includes("hour") && <th className="px-3 py-2 text-left">Hour</th>}
+              {selectedDimensions.includes("event") && <th className="px-3 py-2 text-left">Event</th>}
+              {selectedDimensions.includes("bidder") && <th className="px-3 py-2 text-left">Adapter</th>}
+              {selectedDimensions.includes("creativeId") && <th className="px-3 py-2 text-left">Creative ID</th>}
+              {selectedDimensions.includes("adUnitCode") && <th className="px-3 py-2 text-left">Ad Unit Code</th>}
+              {selectedDimensions.includes("geo") && <th className="px-3 py-2 text-left">GEO</th>}
 
               {selectedFields
                 .filter((metric) => metric !== "hour")
@@ -510,31 +427,18 @@ export default function StatsPage(): JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {pagedRows.map((row, idx) => (
+            {reportRows.map((row, idx) => (
               <tr
                 key={`${row.date}-${row.hour ?? ""}-${row.bidder ?? ""}-${row.creativeId ?? ""}-${idx}`}
                 className="border-t"
               >
                 <td className="px-3 py-1">{row.date}</td>
-
-                {selectedDimensions.includes("hour") && (
-                  <td className="px-3 py-1">{row.hour ?? ""}</td>
-                )}
-                {selectedDimensions.includes("event") && (
-                  <td className="px-3 py-1">{row.event ?? ""}</td>
-                )}
-                {selectedDimensions.includes("bidder") && (
-                  <td className="px-3 py-1">{row.bidder ?? ""}</td>
-                )}
-                {selectedDimensions.includes("creativeId") && (
-                  <td className="px-3 py-1">{row.creativeId ?? ""}</td>
-                )}
-                {selectedDimensions.includes("adUnitCode") && (
-                  <td className="px-3 py-1">{row.adUnitCode ?? ""}</td>
-                )}
-                {selectedDimensions.includes("geo") && (
-                  <td className="px-3 py-1">{row.geo ?? ""}</td>
-                )}
+                {selectedDimensions.includes("hour") && <td className="px-3 py-1">{row.hour ?? ""}</td>}
+                {selectedDimensions.includes("event") && <td className="px-3 py-1">{row.event ?? ""}</td>}
+                {selectedDimensions.includes("bidder") && <td className="px-3 py-1">{row.bidder ?? ""}</td>}
+                {selectedDimensions.includes("creativeId") && <td className="px-3 py-1">{row.creativeId ?? ""}</td>}
+                {selectedDimensions.includes("adUnitCode") && <td className="px-3 py-1">{row.adUnitCode ?? ""}</td>}
+                {selectedDimensions.includes("geo") && <td className="px-3 py-1">{row.geo ?? ""}</td>}
 
                 {selectedFields
                   .filter((metric) => metric !== "hour")
@@ -553,7 +457,7 @@ export default function StatsPage(): JSX.Element {
         <span className="text-sm">Page Size:</span>
         <select
           value={pageSize}
-          onChange={(e) => setPageSize(Number(e.target.value))}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
           className="border rounded px-2 py-1"
         >
           {[25, 50, 100, 200, 500].map((sizeOption) => (
@@ -563,7 +467,7 @@ export default function StatsPage(): JSX.Element {
           ))}
         </select>
         <span className="ml-4 text-sm">
-          Page {currentPage} of {totalPages} • {reportRows.length.toLocaleString()} rows
+          Page {currentPage} of {totalPages} • {totalRows.toLocaleString()} rows
         </span>
         <div className="ml-auto flex gap-2">
           <button type="button" onClick={() => setCurrentPage(1)} disabled={currentPage <= 1} className="border rounded px-2 py-1">«</button>
@@ -572,22 +476,26 @@ export default function StatsPage(): JSX.Element {
           <button type="button" onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages} className="border rounded px-2 py-1">»</button>
         </div>
         <div className="flex gap-2">
-          <button type="button" 
-            onClick={() => downloadCsv(`report_${filters.dateFrom}_${filters.dateTo}.csv`, toExportRows(reportRows))}
+          <a
             className="border rounded px-3 py-1"
+            href={buildExportUrl("csv", selectedDimensions, selectedFields.filter((f) => f !== "hour"), filters)}
+            target="_blank"
+            rel="noreferrer"
           >
             Export CSV
-          </button>
-          <button type="button" 
-            onClick={() => downloadExcel(`report_${filters.dateFrom}_${filters.dateTo}.xlsx`, toExportRows(reportRows))}
+          </a>
+          <a
             className="border rounded px-3 py-1"
+            href={buildExportUrl("xlsx", selectedDimensions, selectedFields.filter((f) => f !== "hour"), filters)}
+            target="_blank"
+            rel="noreferrer"
           >
             Export Excel
-          </button>
+          </a>
         </div>
       </div>
 
-      <h2 className="text-lg font-semibold mb-2">Wins & Auctions</h2>
+      {/* <h2 className="text-lg font-semibold mb-2">Wins & Auctions</h2>
       <div className="h-72 w-full mb-8">
         <ResponsiveContainer>
           <BarChart data={chartData}>
@@ -612,7 +520,7 @@ export default function StatsPage(): JSX.Element {
             <Line type="monotone" dataKey="avg_cpm" />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </div> */}
     </div>
   );
 }

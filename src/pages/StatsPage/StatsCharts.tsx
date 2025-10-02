@@ -41,7 +41,7 @@ export default function StatsCharts({ data, defaultX = "date" }: StatsChartsProp
           {METRIC_KEYS.map(m => <option key={String(m.key)} value={String(m.key)}>{m.label}</option>)}
         </select>
 
-<label className="text-sm">Series B:</label>
+        <label className="text-sm">Series B:</label>
         <select value={String(seriesB)} onChange={(e) => setSeriesB(e.target.value as keyof StatRow)} className="border rounded px-2 py-1">
           {METRIC_KEYS.map(m => <option key={String(m.key)} value={String(m.key)}>{m.label}</option>)}
         </select>
