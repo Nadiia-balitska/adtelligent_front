@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { initAds } from "virtual:ads";
 
 import "./App.css";
-import Layout from "./components/Layout";
+import Layout from "./components/Layout/Layout";
 import "virtual:plugins"; //заімпортує мені всі файлм
 
 const ADS_ENABLED = import.meta.env.VITE_ENABLE_ADS === "true";

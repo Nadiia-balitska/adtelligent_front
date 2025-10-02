@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { fetchNews } from "../../services/news";
+import AdminPage from "../../components/AdminPage";
 
 export default function NewsFeed() {
 	const { data, isLoading } = useQuery({
@@ -12,6 +13,7 @@ export default function NewsFeed() {
 
 	return (
 		<div className="min-h-[calc(100vh-64px)] bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+			<AdminPage />
 			<div className="mx-auto grid max-w-4xl gap-4 p-6 sm:grid-cols-2">
 				{data?.map((n) => (
 					<article

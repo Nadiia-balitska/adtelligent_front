@@ -1,4 +1,4 @@
-
+const API = import.meta.env?.VITE_BACKEND
 export const AD_UNITS = [
   {
     code: 'div-gpt-top',
@@ -9,15 +9,11 @@ export const AD_UNITS = [
     },
     bids: [
       {
-        bidder: 'adtelligent',
+        bidder: 'balitska',
         params: {
-          placementId: '350975'
-        }
-      },
-      {
-        bidder: 'bidmatic',
-        params: {
-          placement: '886409'
+          endpoint: `${API}/api/balitska/get`,
+           adType: "BANNER",
+          placementId: 'top-banner',
         }
       }
     ]
@@ -30,16 +26,13 @@ export const AD_UNITS = [
       }
     },
     bids: [
+   
       {
-        bidder: 'adtelligent',
+        bidder: 'balitska',
         params: {
-          placementId: '350975'
-        }
-      },
-      {
-        bidder: 'bidmatic',
-        params: {
-          placement: '886409'
+          endpoint: `${API}/api/balitska/get`,
+          adType: "BANNER",
+          placementId: 'side-banner',
         }
       }
     ]

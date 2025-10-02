@@ -12,10 +12,10 @@ export function loadGpt() {
 export function defineSlots(slotDefs) {
   const g = window.googletag;
   g.cmd.push(() => {
+    g.pubads().disableInitialLoad();
     slotDefs.forEach(def => {
       g.defineSlot(def.adUnitPath, def.sizes, def.elementId).addService(g.pubads());
     });
-    g.pubads().disableInitialLoad();
     g.enableServices();
   });
 }

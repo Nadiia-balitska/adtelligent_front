@@ -2,8 +2,9 @@
 
 import { AD_UNITS, SLOT_DEFS } from "./ad-units";
 import { loadGpt, defineSlots, displayAll, refreshAllGpt } from "./google-gpt";
+import "./analytics";
 
-const PREBID_SRC = "/prebid10.10.0.js";
+const PREBID_SRC = "/prebid.js";
 
 function loadPrebid() {
   return new Promise((resolve, reject) => {
@@ -72,6 +73,12 @@ function requestAuctionAndDisplay() {
     window.pbjs.requestBids({
       timeout: 1000,
       bidsBackHandler: () => {
+        const winners = window.pbjs.getHighestCpmBids();
+        if (winners.length === 0) {
+          console.warn("⚠️ No ads returned — skipping GPT render");
+          return;
+        }
+        
         window.pbjs.setTargetingForGPTAsync();
         displayAll(SLOT_DEFS);
       },
