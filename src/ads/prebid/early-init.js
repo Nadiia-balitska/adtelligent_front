@@ -14,7 +14,7 @@
     window.pbjs.que = window.pbjs.que || [];
     const s = document.createElement('script');
     s.async = true;
-    s.src = '/public/prebid.js';
+    s.src = '/prebid.js';
     document.head.appendChild(s);
   })();
 })();
