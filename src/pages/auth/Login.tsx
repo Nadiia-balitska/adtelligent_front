@@ -19,7 +19,7 @@ const loginMutation = useMutation({
     mutationFn: (data: Form) => AuthApi.login(data.email, data.password),
     onSuccess: () => {
 		   qc.invalidateQueries({ queryKey: queryKeys.me });
-      navigate("/");
+      navigate("/dashboard");
     },
   });
 	const {

@@ -25,14 +25,13 @@ const Layout = () => {
           <div className="min-w-0">
             <Outlet />
           </div>
-
           <aside className="w-full lg:w-[320px]">
             <div className="sticky top-24 rounded-2xl border border-zinc-200/70 bg-white/70 p-4 md:p-5 shadow-sm backdrop-blur mb-8 dark:border-zinc-800/60 dark:bg-zinc-900/70">
               <div
-  id="div-gpt-side"
-  className="my-2 flex items-center justify-center"
-  style={{ minWidth: 300, minHeight: 250 }}  
-/>
+                id="div-gpt-side"
+                 className="my-2 flex items-center justify-center"
+              style={{ minWidth: 300, minHeight: 250 }}  
+                 />
             </div>
           </aside>
         </div>
