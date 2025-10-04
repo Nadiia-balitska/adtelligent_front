@@ -43,17 +43,17 @@ async function request<T>(path: string, init?: RequestInit & { json?: JsonValue 
 
 export const AuthApi = {
   login: (email: string, password: string) =>
-    request<{ token: string }>("/api/auth/login", { method: "POST", json: { email, password } }),
+    request<{ token: string }>("/auth/login", { method: "POST", json: { email, password } }),
 
   register: (email: string, password: string, name?: string) =>
-    request<{ token: string }>("/api/auth/register", {
+    request<{ token: string }>("/auth/register", {
       method: "POST",
       json: { email, password, ...(name ? { name } : {}) },
     }),
 
-  logout: () => request<void>("/api/auth/logout", { method: "POST" }),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
 
-  me: () => request<{ id: string; email: string; name?: string | null }>("/api/auth/me"),
+  me: () => request<{ id: string; email: string; name?: string | null }>("/auth/me"),
 };
 
 export const queryKeys = {

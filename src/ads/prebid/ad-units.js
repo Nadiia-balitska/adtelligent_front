@@ -11,7 +11,7 @@ export const AD_UNITS = [
       {
         bidder: 'balitska',
         params: {
-          endpoint: `${API}/api/balitska/get`,
+          endpoint: `${API}/balitska/get`,
            adType: "BANNER",
           placementId: 'top-banner',
         }
@@ -28,9 +28,9 @@ export const AD_UNITS = [
     bids: [
    
       {
-        bidder: 'balitska',
+        bidder: 'adtelligent',
         params: {
-          endpoint: `${API}/api/balitska/get`,
+          endpoint: `${API}/balitska/get`,
           adType: "BANNER",
           placementId: 'side-banner',
         }
@@ -40,6 +40,6 @@ export const AD_UNITS = [
 ];
 
 export const SLOT_DEFS = [
-  { adUnitPath: '/123456/slot-top',  sizes: [[728,90],[970,250]],  elementId: 'div-gpt-top'  },
-  { adUnitPath: '/123456/slot-side', sizes: [[300,250],[300,600]], elementId: 'div-gpt-side' },
+  { adUnitPath: '/top-banner',  sizes: [[728,90],[970,250]],  elementId: 'div-gpt-top'  },
+  { adUnitPath: '/side-banner', sizes: [[300,250],[300,600]], elementId: 'div-gpt-side' },
 ];

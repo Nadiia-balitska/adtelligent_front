@@ -13,7 +13,7 @@ export default function AdminPage() {
 useEffect(() => {
     const checkLineItems = async () => {
       try {
-        const res = await fetch(`${API_ORIGIN}/api/line-items`);
+        const res = await fetch(`${API_ORIGIN}/line-items`);
         if (!res.ok) throw new Error("Failed to load line items");
         const data = await res.json();
         setHasLineItems(data.length > 0);
