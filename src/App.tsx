@@ -1,7 +1,6 @@
 import { lazy, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { initAds } from "virtual:ads";
-
 import "./App.css";
 import Layout from "./components/Layout/Layout";
 import "virtual:plugins"; 
@@ -13,19 +12,12 @@ import NewsFull from "./components/News/NewsFull";
 import NewsFeed from "./components/News/NewsFeed";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
-const ADS_ENABLED = import.meta.env.VITE_ENABLE_ADS === "true";
 
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
 
-const AdsView = ADS_ENABLED
-  ? lazy(() =>
-      import("virtual:ads").then(m => ({
-        default: m.AdsLogsView ?? (() => <Navigate to="/" replace />),
-      }))
-    )
-  : null;
+
 function App() {
 	useEffect(() => { initAds();
 
