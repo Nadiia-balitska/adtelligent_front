@@ -5,6 +5,8 @@ import { initAds } from "virtual:ads";
 import "./App.css";
 import Layout from "./components/Layout/Layout";
 import "virtual:plugins"; //заімпортує мені всі файлм
+import StatsPage from "./pages/StatsPage/StatsPage";
+import ChartsPage from "./pages/StatsPage/ChartsPage";
 
 const ADS_ENABLED = import.meta.env.VITE_ENABLE_ADS === "true";
 
@@ -35,6 +37,8 @@ function App() {
 				<Route path="/news/:id" element={<NewsFull />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
+				<Route path="/stats" element={<StatsPage />} />
+				<Route path="/chart" element={<ChartsPage />} />
 				<Route path="*" element={<Navigate to="/" replace />} />
 			</Route>
 		</Routes>
