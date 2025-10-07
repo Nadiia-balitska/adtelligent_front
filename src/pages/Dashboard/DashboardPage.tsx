@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { AuthApi, queryKeys } from "../../services/api";
+import { AuthApi, queryKeys } from "../../services/auth";
 import type { MeResponse } from "../../types/auth";
 import AdminPage from "../../components/AdminPage/AdminPage";
 import NewsFeed from "../../components/News/NewsFeed";

@@ -6,7 +6,7 @@ import schema from "../../schemas/schemasRegister";
 import { useNavigate } from "react-router-dom";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AuthApi, queryKeys } from "../../services/api";
+import { AuthApi, queryKeys } from "../../services/auth";
 type Form = z.infer<typeof schema>;
 
 export default function Register() {
