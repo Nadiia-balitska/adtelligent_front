@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: this effect runs once by design */
 import { useEffect, useState } from "react";
+import AdTester from "../AdapterServerTest/AdapterServerTest";
 
 const API_ORIGIN = import.meta.env.VITE_BACKEND as string;
 
@@ -55,6 +56,8 @@ export default function AdminPage() {
           Поки що лайн-айтемів немає — створіть перший через форму вище.
         </p>
       )}
+
+      <AdTester />
     </div>
   );
 }
