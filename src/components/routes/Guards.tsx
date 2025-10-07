@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, Outlet } from "react-router-dom";
-import { AuthApi, queryKeys } from "../../services/api";
+import { AuthApi, queryKeys } from "../../services/auth";
 import type { MeResponse } from "../../types/auth";
 
 export const PublicOnlyRoute = () => {
