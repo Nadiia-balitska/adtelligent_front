@@ -6,6 +6,8 @@ export default function NewsFeed() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["news"],
     queryFn: fetchNews, 
+	 refetchInterval: 60_000,    
+  refetchOnWindowFocus: true,
   });
 
   if (isLoading) return <p className="p-6">Завантаження…</p>;
