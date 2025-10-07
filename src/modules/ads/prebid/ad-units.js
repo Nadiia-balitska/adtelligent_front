@@ -4,7 +4,7 @@ export const AD_UNITS = [
     code: 'div-gpt-top',
     mediaTypes: {
       banner: {
-        sizes: [[728, 90], [970, 250]]
+        sizes: [[300, 250], [400, 250]]
       }
     },
     bids: [
@@ -40,6 +40,6 @@ export const AD_UNITS = [
 ];
 
 export const SLOT_DEFS = [
-  { adUnitPath: '/top-banner',  sizes: [[728,90],[970,250]],  elementId: 'div-gpt-top'  },
-  { adUnitPath: '/side-banner', sizes: [[300,250],[300,600]], elementId: 'div-gpt-side' },
+  { adUnitPath: '/creatives/1759811896894-mastercard.png',  sizes: [[728,90],[970,250]],  elementId: 'div-gpt-top'  },
+  { adUnitPath: '/creatives/1759810655931-hero_bg_desc.jpg', sizes: [[300,250],[300,600]], elementId: 'div-gpt-side' },
 ];

@@ -11,6 +11,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import NewsFull from "./components/News/NewsFull";
 import NewsFeed from "./components/News/NewsFeed";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import AdminPage from "./components/AdminPage/AdminPage";
 
 
 
@@ -39,6 +40,7 @@ function App() {
         </Route>
 
           <Route element={<PrivateRoute />}>
+            <Route path="/admin-line-items" element={<AdminPage />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/chart" element={<ChartsPage />} />
           </Route>

@@ -4,7 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import ThemeWatcher from "./components/Theme/ThemeWatcher.tsx";
-import "./ads/prebid/early-init"
+import "./modules/ads/prebid/early-init.js"
 // import "virtual:plugins"; //заімпортує мені всі файлм
 
 import "./index.css";

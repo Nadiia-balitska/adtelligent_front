@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AuthApi, queryKeys } from "../../services/auth";
 import type { MeResponse } from "../../types/auth";
-import AdminPage from "../../components/AdminPage/AdminPage";
 import NewsFeed from "../../components/News/NewsFeed";
 import { Outlet } from "react-router-dom";
 
@@ -17,7 +16,6 @@ const DashboardPage = () => {
   if (me) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-        <AdminPage />
         <NewsFeed />
         <Outlet />
       </div>
