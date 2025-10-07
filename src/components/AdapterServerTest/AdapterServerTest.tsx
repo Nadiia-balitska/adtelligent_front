@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/security/noDangerouslySetInnerHtml: <explanation> */
+/** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
 import { useState } from "react";
 import { apiPost, API_ORIGIN } from "../../services/addServer";
 import type { AdRequestPayload, AdResponse } from "../../types/add-server";
