@@ -50,14 +50,14 @@ export default function AdminPage() {
       style={{ position: "relative", width: "100%", minHeight: "70vh" }}
     >
       <h2 className="mb-3 text-xl font-semibold">Admin • Line Items</h2>
-      <line-item-form data-api-origin={API_ORIGIN} />
+      <line-item-form data-api-origin={API_ORIGIN}   style={{ color: "black" }}/>
       {hasLineItems === false && (
         <p className="mt-3 text-sm text-zinc-500">
           Поки що лайн-айтемів немає — створіть перший через форму вище.
         </p>
       )}
 
-      <AdTester />
+      <AdTester   />
     </div>
   );
 }
