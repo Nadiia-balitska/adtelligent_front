@@ -48,7 +48,7 @@ export default function AdTester() {
   };
 
   const creativeSrcAbs = toAbsolute(ad ? extractIframeSrc(ad.adm) : null);
-  const creativeIsImage = isImageUrl(creativeSrcAbs);
+  // const creativeIsImage = isImageUrl(creativeSrcAbs);
 
   return (
     <div className="mt-16 rounded-2xl border p-4">
