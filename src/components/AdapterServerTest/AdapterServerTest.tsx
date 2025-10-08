@@ -17,10 +17,7 @@ function toAbsolute(url: string | null): string | null {
   return `${API_ORIGIN}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
-function isImageUrl(url: string | null): boolean {
-  if (!url) return false;
-  return /\.(png|jpe?g|gif|webp)$/i.test(url.split("?")[0]);
-}
+
 
 export default function AdTester() {
   const [payload, setPayload] = useState<AdRequestPayload>({
