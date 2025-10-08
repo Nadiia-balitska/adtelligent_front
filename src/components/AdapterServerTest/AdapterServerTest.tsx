@@ -17,10 +17,7 @@ function toAbsolute(url: string | null): string | null {
   return `${API_ORIGIN}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
-function isImageUrl(url: string | null): boolean {
-  if (!url) return false;
-  return /\.(png|jpe?g|gif|webp)$/i.test(url.split("?")[0]);
-}
+
 
 export default function AdTester() {
   const [payload, setPayload] = useState<AdRequestPayload>({
@@ -48,7 +45,7 @@ export default function AdTester() {
   };
 
   const creativeSrcAbs = toAbsolute(ad ? extractIframeSrc(ad.adm) : null);
-  const creativeIsImage = isImageUrl(creativeSrcAbs);
+  // const creativeIsImage = isImageUrl(creativeSrcAbs);
 
   return (
     <div className="mt-16 rounded-2xl border p-4">
@@ -146,21 +143,7 @@ export default function AdTester() {
             )}
           </div>
 
-          <div className="rounded-xl border p-3">
-            <h4 className="mb-2 font-semibold">Креатив, що буде показаний</h4>
-
-            {creativeIsImage ? (
-              <img
-                src={creativeSrcAbs!}
-                alt="ad creative"
-                width={ad.w}
-                height={ad.h}
-                style={{ maxWidth: "100%", height: "auto", objectFit: "contain" }}
-              />
-            ) : (
-              <div dangerouslySetInnerHTML={{ __html: ad.adm }} />
-            )}
-          </div>
+          
         </div>
       )}
     </div>
