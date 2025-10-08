@@ -1,6 +1,5 @@
-import { lazy, useEffect } from "react";
+import { lazy, } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { initAds } from "virtual:ads";
 import "./App.css";
 import Layout from "./components/Layout/Layout";
 import "virtual:plugins"; 
@@ -15,14 +14,12 @@ import AdminPage from "./components/AdminPage/AdminPage";
 
 
 
+
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
 
 
 function App() {
-	useEffect(() => { initAds();
-
-	 }, []);
 	return (
 			    
 	<Routes>

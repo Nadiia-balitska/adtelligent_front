@@ -1,8 +1,10 @@
 /** biome-ignore-all lint/suspicious/useIterableCallbackReturn: Prebid queues run later */
+/** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <explanation> */
+/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
 
 import { AD_UNITS, SLOT_DEFS } from "./ad-units";
-import { loadGpt, defineSlots, displayAll, refreshAllGpt } from "./google-gpt";
-import "./analytics";
+import { loadGpt, defineSlots, refreshAllGpt } from "./google-gpt";
+import "../../analytics/analytics";
 
 const PREBID_SRC = "/prebid.js";
 
@@ -66,25 +68,68 @@ function wireEventsForLogs() {
 // Якщо не зробити pbjs.setTargetingForGPTAsync() і потім display()/refresh(), то bidWon може не виконатись і банер не з’явиться.
 }
 
-function requestAuctionAndDisplay() {
-  window.pbjs.que.push(() => {
-    window.pbjs.addAdUnits(AD_UNITS);
 
-    window.pbjs.requestBids({
-      timeout: 1000,
-      bidsBackHandler: () => {
-        const winners = window.pbjs.getHighestCpmBids();
-        if (winners.length === 0) {
-          console.warn("⚠️ No ads returned — skipping GPT render");
+function auction() {
+  window.pbjs = window.pbjs || {};
+  window.pbjs.que = window.pbjs.que || [];
+
+  AD_UNITS.forEach((adUnit) => {
+    pbjs.addAdUnits([adUnit]);
+
+    pbjs.requestBids({
+      timeout: 1500,
+      adUnitCodes: [adUnit.code], 
+      bidsBackHandler: function () {
+        const bid = pbjs.getHighestCpmBids(adUnit.code)[0];
+        console.log("[prebid] winning bid for", adUnit.code, bid);
+
+        if (!bid) {
+          console.warn("[prebid] no bid for", adUnit.code);
           return;
         }
-        
-        window.pbjs.setTargetingForGPTAsync();
-        displayAll(SLOT_DEFS);
+
+        let iframe = document.getElementById(adUnit.code);
+        if (!(iframe instanceof HTMLIFrameElement)) {
+          iframe = document.createElement("iframe");
+          iframe.id = adUnit.code;
+          const [w, h] = (adUnit.mediaTypes?.banner?.sizes?.[0] || [300, 250]);
+          iframe.width = w;
+          iframe.height = h;
+          iframe.frameBorder = "0";
+          iframe.style.display = "block";
+          iframe.style.border = "0";
+          document.body.appendChild(iframe);
+        }
+
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) {
+          console.error("[prebid] no iframe document");
+          return;
+        }
+
+        try {
+          const idForRender =
+            bid.adId || bid.requestId || bid.bidId || bid.request_id;
+          console.log("[prebid] renderAd with id:", idForRender);
+          pbjs.renderAd(doc, idForRender);
+        } catch (e) {
+          console.warn("[prebid] renderAd failed, fallback to raw HTML:", e);
+
+          const html = bid.ad || bid.adm;
+          if (html) {
+            doc.open();
+            doc.write(html);
+            doc.close();
+          } else {
+            console.error("[prebid] no ad/ad m html found in bid");
+          }
+        }
       },
     });
   });
 }
+
+
 
 function setupAutoRefresh(ms) {
   if (!ms) return;
@@ -112,7 +157,7 @@ export async function initAds() {
   applyPrebidConfigForDev();
   wireEventsForLogs();
 
-  requestAuctionAndDisplay();
+  auction();
 
   setupAutoRefresh(60_000);
 }

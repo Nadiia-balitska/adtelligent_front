@@ -37,7 +37,7 @@ export default function virtualModules(): Plugin {
       if (id === ID_ADS) {
         if (enablePrebid) {
           return `
-            export { initAds } from "/src/ads/prebid/init-prebid.js";
+            import  "/src/modules/ads/prebid/init-prebid.js";
             export { default as AdsView } from "/src/ads/component/AdsView.jsx";
           `;
         }

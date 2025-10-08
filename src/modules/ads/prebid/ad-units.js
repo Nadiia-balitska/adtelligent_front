@@ -1,7 +1,8 @@
-const API = import.meta.env?.VITE_BACKEND
+const API = import.meta.env.VITE_BACKEND;
+
 export const AD_UNITS = [
   {
-    code: 'div-gpt-top',
+    code: 'div-gpt-bottom',
     mediaTypes: {
       banner: {
         sizes: [[300, 250], [400, 250]]
@@ -12,14 +13,15 @@ export const AD_UNITS = [
         bidder: 'balitska',
         params: {
           endpoint: `${API}/balitska/get`,
-           adType: "BANNER",
-          placementId: 'top-banner',
+          // adType: "BANNER",
+          // placementId: 'div-gpt-top',
+
         }
       }
     ]
   },
   {
-    code: 'div-gpt-side',
+    code: 'ad-slot',
     mediaTypes: {
       banner: {
         sizes: [[300, 250], [300, 600]]
@@ -30,16 +32,32 @@ export const AD_UNITS = [
       {
         bidder: 'adtelligent',
         params: {
-          endpoint: `${API}/balitska/get`,
-          adType: "BANNER",
-          placementId: 'side-banner',
+          aid: '350975',
+        
         }
       }
+    ]
+  },
+  {
+    code: 'ad-slot-2',
+    mediaTypes: {
+      banner: {
+        sizes: [[300, 250], [300, 600]]
+      }
+    },
+    bids: [
+   {
+     bidder: 'bidmatic',
+     params: {
+       source: 886409
+     }
+   }
     ]
   }
 ];
 
 export const SLOT_DEFS = [
-  { adUnitPath: '/creatives/1759811896894-mastercard.png',  sizes: [[728,90],[970,250]],  elementId: 'div-gpt-top'  },
-  { adUnitPath: '/creatives/1759810655931-hero_bg_desc.jpg', sizes: [[300,250],[300,600]], elementId: 'div-gpt-side' },
+  { adUnitPath: 'ad-slot',  sizes: [[300, 250], [300, 600]],  elementId: 'ad-slot'  },
+  { adUnitPath: 'ad-slot-2',  sizes: [[300, 250], [300, 600]],  elementId: 'ad-slot-2'  },
+  { adUnitPath: 'div-gpt-bottom', sizes: [[300,250],[300,600]], elementId: 'div-gpt-bottom' },
 ];
