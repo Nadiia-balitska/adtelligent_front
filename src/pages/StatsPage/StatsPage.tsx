@@ -11,7 +11,7 @@ import type {
   StatRow,
   ViewTemplate,
 } from "../../types/statistics";
-
+import "./StatsPage.css";
 type ReportResponse = {
   page: number;
   page_size: number;
@@ -20,8 +20,7 @@ type ReportResponse = {
 };
 
 
-const API_BASE =
-  ((import.meta.env?.VITE_BACKEND as string | undefined)) || "";
+const API_BASE = import.meta.env.VITE_BACKEND;
 
 
 const ALL_FIELDS: FieldDef[] = [
@@ -120,7 +119,7 @@ function buildExportUrl(
 export default function StatsPage(): JSX.Element {
   const [selectedDimensions, setSelectedDimensions] = useState<DimensionKey[]>(["hour", "bidder"]);
   const [selectedFields, setSelectedFields] = useState<FieldKey[]>([
-    "hour", // у запит не підемо з "hour" як метрикою, лише як колонкою у гріді
+    "hour", 
     "auctions",
     "bids",
     "wins",
@@ -142,7 +141,6 @@ export default function StatsPage(): JSX.Element {
   );
   const [viewName, setViewName] = useState<string>("");
 
-  /** Стабільний loader + невеликий debounce у useEffect нижче */
   const loadReport = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -164,7 +162,6 @@ export default function StatsPage(): JSX.Element {
     }
   }, [selectedDimensions, selectedFields, filters, currentPage, pageSize]);
 
-  /** Debounce запиту (уникаємо «петлі» та лавини запитів) */
   useEffect(() => {
     const t = setTimeout(() => {
       void loadReport();
@@ -216,13 +213,19 @@ export default function StatsPage(): JSX.Element {
     setCurrentPage(1);
   }
 
-  return (
-    <div className="mx-auto max-w-[1200px] p-6">
-      <h1 className="text-2xl font-semibold mb-3">Metrics</h1>
+return (
+  <div className="stats-container">
+    {/* Header */}
+    <div className="stats-header">
+      <h1 className="stats-title">Metrics</h1>
+      <div className="stats-status">{isLoading ? "Refreshing…" : "Ready"}</div>
+    </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">From</span>
+    {/* Toolbar / Filters */}
+    <div className="card toolbar">
+      <div className="filters-grid">
+        <label className="filter-field">
+          <span className="filter-label">From</span>
           <input
             type="date"
             value={filters.dateFrom}
@@ -230,11 +233,12 @@ export default function StatsPage(): JSX.Element {
               setFilters({ ...filters, dateFrom: e.target.value });
               setCurrentPage(1);
             }}
-            className="border rounded px-2 py-1"
+            className="input"
           />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">To</span>
+        </label>
+
+        <label className="filter-field">
+          <span className="filter-label">To</span>
           <input
             type="date"
             value={filters.dateTo}
@@ -242,21 +246,38 @@ export default function StatsPage(): JSX.Element {
               setFilters({ ...filters, dateTo: e.target.value });
               setCurrentPage(1);
             }}
-            className="border rounded px-2 py-1"
+            className="input"
           />
-        </div>
-        <select
-          value={filters.report}
-          onChange={(e) => {
-            setFilters({ ...filters, report: e.target.value as ReportMode });
-            setCurrentPage(1);
-          }}
-          className="border rounded px-2 py-1"
-        >
-          <option value="date">By Date</option>
-          <option value="hour">By Hour</option>
-        </select>
+        </label>
 
+        <label className="filter-field">
+          <span className="filter-label">Group</span>
+          <select
+            value={filters.report}
+            onChange={(e) => {
+              setFilters({ ...filters, report: e.target.value as ReportMode });
+              setCurrentPage(1);
+            }}
+            className="select"
+          >
+            <option value="date">By Date</option>
+            <option value="hour">By Hour</option>
+          </select>
+        </label>
+
+        <div className="toolbar-actions">
+          <button
+            type="button"
+            onClick={() => void loadReport()}
+            className="btn btn-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading…" : "Reload"}
+          </button>
+        </div>
+      </div>
+
+      <div className="filters-quick">
         <input
           placeholder="Event"
           value={filters.event || ""}
@@ -264,7 +285,7 @@ export default function StatsPage(): JSX.Element {
             setFilters({ ...filters, event: e.target.value });
             setCurrentPage(1);
           }}
-          className="border rounded px-2 py-1"
+          className="input"
         />
         <input
           placeholder="Bidder"
@@ -273,7 +294,7 @@ export default function StatsPage(): JSX.Element {
             setFilters({ ...filters, bidder: e.target.value });
             setCurrentPage(1);
           }}
-          className="border rounded px-2 py-1"
+          className="input"
         />
         <input
           placeholder="Creative ID"
@@ -282,7 +303,7 @@ export default function StatsPage(): JSX.Element {
             setFilters({ ...filters, creativeId: e.target.value });
             setCurrentPage(1);
           }}
-          className="border rounded px-2 py-1"
+          className="input"
         />
         <input
           placeholder="Ad Unit Code"
@@ -291,7 +312,7 @@ export default function StatsPage(): JSX.Element {
             setFilters({ ...filters, adUnitCode: e.target.value });
             setCurrentPage(1);
           }}
-          className="border rounded px-2 py-1"
+          className="input"
         />
         <input
           placeholder="GEO"
@@ -300,53 +321,47 @@ export default function StatsPage(): JSX.Element {
             setFilters({ ...filters, geo: e.target.value });
             setCurrentPage(1);
           }}
-          className="border rounded px-2 py-1"
-        />
-        <input
-          placeholder="CPM ≥"
-          value={filters.cpmMin || ""}
-          onChange={(e) => {
-            setFilters({ ...filters, cpmMin: e.target.value });
-            setCurrentPage(1);
-          }}
-          className="border rounded w-24 px-2 py-1"
-        />
-        <input
-          placeholder="CPM ≤"
-          value={filters.cpmMax || ""}
-          onChange={(e) => {
-            setFilters({ ...filters, cpmMax: e.target.value });
-            setCurrentPage(1);
-          }}
-          className="border rounded w-24 px-2 py-1"
+          className="input"
         />
 
-        <button
-          type="button"
-          onClick={() => void loadReport()}
-          className="bg-indigo-600 text-white px-3 py-1 rounded disabled:opacity-60"
-          disabled={isLoading}
-        >
-          {isLoading ? "Loading…" : "Reload"}
-        </button>
+        <div className="filter-row">
+          <input
+            placeholder="CPM ≥"
+            value={filters.cpmMin || ""}
+            onChange={(e) => {
+              setFilters({ ...filters, cpmMin: e.target.value });
+              setCurrentPage(1);
+            }}
+            className="input"
+          />
+          <input
+            placeholder="CPM ≤"
+            value={filters.cpmMax || ""}
+            onChange={(e) => {
+              setFilters({ ...filters, cpmMax: e.target.value });
+              setCurrentPage(1);
+            }}
+            className="input"
+          />
+        </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="view-actions">
           <input
             placeholder="View name"
             value={viewName}
             onChange={(e) => setViewName(e.target.value)}
-            className="border rounded px-2 py-1"
+            className="input"
           />
           <button
             type="button"
             onClick={saveCurrentView}
-            className="bg-blue-600 text-white px-3 py-1 rounded"
+            className="btn"
           >
             Save View
           </button>
           <select
             onChange={(e) => applyViewByName(e.target.value)}
-            className="border rounded px-2 py-1"
+            className="select"
           >
             <option value="">Select View</option>
             {savedViews.map((v) => (
@@ -357,121 +372,140 @@ export default function StatsPage(): JSX.Element {
           </select>
         </div>
       </div>
+    </div>
 
-      <div className="flex flex-wrap gap-2 mb-3">
-        {ALL_DIMENSIONS.map((dim) => (
-          <button
-            type="button"
-            key={dim.key}
-            onClick={() => toggleDimension(dim.key)}
-            className={`px-3 py-1 rounded-full text-sm border ${
-              selectedDimensions.includes(dim.key)
-                ? "bg-sky-100 border-sky-400"
-                : "bg-gray-100 border-gray-300"
-            }`}
-          >
-            {selectedDimensions.includes(dim.key) ? "●" : "○"} {dim.label}
-          </button>
-        ))}
+    {/* Dimensions */}
+    <div className="card">
+      <div className="section-title">Dimensions</div>
+      <div className="chips">
+        {ALL_DIMENSIONS.map((dim) => {
+          const active = selectedDimensions.includes(dim.key);
+          return (
+            <button
+              type="button"
+              key={dim.key}
+              onClick={() => toggleDimension(dim.key)}
+              className={`chip ${active ? "chip--active-sky" : ""}`}
+            >
+              {dim.label}
+            </button>
+          );
+        })}
       </div>
+    </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        {ALL_FIELDS.map((field) => (
-          <button
-            type="button"
-            key={field.key}
-            onClick={() => toggleField(field.key)}
-            className={`px-3 py-1 rounded-full text-sm border ${
-              selectedFields.includes(field.key)
-                ? "bg-indigo-100 border-indigo-400"
-                : "bg-gray-100 border-gray-300"
-            }`}
-          >
-            {selectedFields.includes(field.key) ? "●" : "○"} {field.label}
-          </button>
-        ))}
+    {/* Fields */}
+    <div className="card">
+      <div className="section-title">Metrics</div>
+      <div className="chips">
+        {ALL_FIELDS.map((field) => {
+          const active = selectedFields.includes(field.key);
+          return (
+            <button
+              type="button"
+              key={field.key}
+              onClick={() => toggleField(field.key)}
+              className={`chip ${active ? "chip--active-indigo" : ""}`}
+            >
+              {field.label}
+            </button>
+          );
+        })}
       </div>
+    </div>
 
-      <div className="overflow-auto rounded border mb-3">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 sticky top-0">
+    {/* Table */}
+    <div className="card table-card">
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-indicator">Loading data…</div>
+        </div>
+      )}
+
+      <div className="table-scroll">
+        <table className="metrics-table">
+          <thead>
             <tr>
-              <th className="px-3 py-2 text-left">Date</th>
-              {selectedDimensions.includes("hour") && <th className="px-3 py-2 text-left">Hour</th>}
-              {selectedDimensions.includes("event") && <th className="px-3 py-2 text-left">Event</th>}
-              {selectedDimensions.includes("bidder") && <th className="px-3 py-2 text-left">Adapter</th>}
-              {selectedDimensions.includes("creativeId") && (
-                <th className="px-3 py-2 text-left">Creative ID</th>
-              )}
-              {selectedDimensions.includes("adUnitCode") && (
-                <th className="px-3 py-2 text-left">Ad Unit Code</th>
-              )}
-              {selectedDimensions.includes("geo") && <th className="px-3 py-2 text-left">GEO</th>}
+              <th>Date</th>
+              {selectedDimensions.includes("hour") && <th>Hour</th>}
+              {selectedDimensions.includes("event") && <th>Event</th>}
+              {selectedDimensions.includes("bidder") && <th>Adapter</th>}
+              {selectedDimensions.includes("creativeId") && <th>Creative ID</th>}
+              {selectedDimensions.includes("adUnitCode") && <th>Ad Unit Code</th>}
+              {selectedDimensions.includes("geo") && <th>GEO</th>}
               {selectedFields
                 .filter((metric) => metric !== "hour")
                 .map((metric) => (
-                  <th key={metric} className="px-3 py-2 text-left">
+                  <th key={metric}>
                     {ALL_FIELDS.find((f) => f.key === metric)?.label ?? metric}
                   </th>
                 ))}
             </tr>
           </thead>
           <tbody>
-            {reportRows.map((row, idx) => (
-              <tr
-                key={`${row.date}-${row.hour ?? ""}-${row.bidder ?? ""}-${row.creativeId ?? ""}-${idx}`}
-                className="border-t"
-              >
-                <td className="px-3 py-1">{row.date}</td>
-                {selectedDimensions.includes("hour") && <td className="px-3 py-1">{row.hour ?? ""}</td>}
-                {selectedDimensions.includes("event") && <td className="px-3 py-1">{row.event ?? ""}</td>}
-                {selectedDimensions.includes("bidder") && <td className="px-3 py-1">{row.bidder ?? ""}</td>}
-                {selectedDimensions.includes("creativeId") && (
-                  <td className="px-3 py-1">{row.creativeId ?? ""}</td>
-                )}
-                {selectedDimensions.includes("adUnitCode") && (
-                  <td className="px-3 py-1">{row.adUnitCode ?? ""}</td>
-                )}
-                {selectedDimensions.includes("geo") && <td className="px-3 py-1">{row.geo ?? ""}</td>}
-                {selectedFields
-                  .filter((metric) => metric !== "hour")
-                  .map((metric) => (
-                    <td key={metric} className="px-3 py-1">
-                      {row[metric as keyof StatRow] ?? ""}
-                    </td>
-                  ))}
+            {reportRows.length === 0 && !isLoading ? (
+              <tr>
+                <td className="empty-cell" colSpan={7 + selectedFields.length}>
+                  No data for selected filters.
+                </td>
               </tr>
-            ))}
+            ) : (
+              reportRows.map((row, idx) => (
+                <tr
+                  key={`${row.date}-${row.hour ?? ""}-${row.bidder ?? ""}-${row.creativeId ?? ""}-${idx}`}
+                >
+                  <td>{row.date}</td>
+                  {selectedDimensions.includes("hour") && <td>{row.hour ?? ""}</td>}
+                  {selectedDimensions.includes("event") && <td>{row.event ?? ""}</td>}
+                  {selectedDimensions.includes("bidder") && <td>{row.bidder ?? ""}</td>}
+                  {selectedDimensions.includes("creativeId") && <td>{row.creativeId ?? ""}</td>}
+                  {selectedDimensions.includes("adUnitCode") && <td>{row.adUnitCode ?? ""}</td>}
+                  {selectedDimensions.includes("geo") && <td>{row.geo ?? ""}</td>}
+                  {selectedFields
+                    .filter((metric) => metric !== "hour")
+                    .map((metric) => (
+                      <td key={metric} className="num">
+                        {row[metric as keyof StatRow] ?? ""}
+                      </td>
+                    ))}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      <div className="flex items-center gap-3 mb-8">
-        <span className="text-sm">Page Size:</span>
-        <select
-          value={pageSize}
-          onChange={(e) => {
-            setPageSize(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="border rounded px-2 py-1"
-        >
-          {[25, 50, 100, 200, 500].map((sizeOption) => (
-            <option key={sizeOption} value={sizeOption}>
-              {sizeOption}
-            </option>
-          ))}
-        </select>
-        <span className="ml-4 text-sm">
-          Page {currentPage} of {totalPages} • {totalRows.toLocaleString()} rows
-        </span>
+      {/* Footer / Pagination / Export */}
+      <div className="table-footer">
+        <div className="page-size">
+          <span>Page Size</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="select"
+          >
+            {[25, 50, 100, 200, 500].map((sizeOption) => (
+              <option key={sizeOption} value={sizeOption}>
+                {sizeOption}
+              </option>
+            ))}
+          </select>
 
-        <div className="ml-auto flex gap-2">
+          <span className="muted">
+            Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> •{" "}
+            <strong>{totalRows.toLocaleString()}</strong> rows
+          </span>
+        </div>
+
+        <div className="pager">
           <button
             type="button"
             onClick={() => setCurrentPage(1)}
             disabled={currentPage <= 1}
-            className="border rounded px-2 py-1"
+            className="btn"
           >
             «
           </button>
@@ -479,7 +513,7 @@ export default function StatsPage(): JSX.Element {
             type="button"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage <= 1}
-            className="border rounded px-2 py-1"
+            className="btn"
           >
             ‹
           </button>
@@ -487,7 +521,7 @@ export default function StatsPage(): JSX.Element {
             type="button"
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage >= totalPages}
-            className="border rounded px-2 py-1"
+            className="btn"
           >
             ›
           </button>
@@ -495,15 +529,15 @@ export default function StatsPage(): JSX.Element {
             type="button"
             onClick={() => setCurrentPage(totalPages)}
             disabled={currentPage >= totalPages}
-            className="border rounded px-2 py-1"
+            className="btn"
           >
             »
           </button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="export-actions">
           <a
-            className="border rounded px-3 py-1"
+            className="btn"
             href={buildExportUrl(
               "csv",
               selectedDimensions,
@@ -516,7 +550,7 @@ export default function StatsPage(): JSX.Element {
             Export CSV
           </a>
           <a
-            className="border rounded px-3 py-1"
+            className="btn"
             href={buildExportUrl(
               "xlsx",
               selectedDimensions,
@@ -531,5 +565,8 @@ export default function StatsPage(): JSX.Element {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
+
 }

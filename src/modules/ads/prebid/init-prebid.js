@@ -3,7 +3,7 @@
 /** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
 
 import { AD_UNITS, SLOT_DEFS } from "./ad-units";
-import { loadGpt, defineSlots, displayAll, refreshAllGpt } from "./google-gpt";
+import { loadGpt, defineSlots, refreshAllGpt } from "./google-gpt";
 import "../../analytics/analytics";
 
 const PREBID_SRC = "/prebid.js";
@@ -68,41 +68,7 @@ function wireEventsForLogs() {
 // Якщо не зробити pbjs.setTargetingForGPTAsync() і потім display()/refresh(), то bidWon може не виконатись і банер не з’явиться.
 }
 
-// function auction() {
-//   window.pbjs = window.pbjs || {};
-//   window.pbjs.que = window.pbjs.que || [];
 
-//   AD_UNITS.forEach((adUnit) => {
-//     pbjs.addAdUnits([adUnit]);
-
-//     pbjs.requestBids({
-//       timeout: 1000,
-//       bidsBackHandler: function (bidResponses) {
-//         const winningAd = pbjs.getHighestCpmBids(adUnit.code)[0];
-
-//         const iframe = document.getElementById(adUnit.code);
-// // debugger
-//         if (!(iframe instanceof HTMLIFrameElement)) {
-//           const iframe = document.createElement("iframe");
-// iframe.id = adUnit.code;
-// iframe.width = adUnit.mediaTypes.banner.sizes[0][0];
-// iframe.height = adUnit.mediaTypes.banner.sizes[0][1];
-// iframe.frameBorder = "0";
-// document.body.appendChild(iframe);
-
-//         }
-//        const iframeDoc =
-//           (iframe.contentDocument || iframe.contentWindow?.document);
-//         if (!iframeDoc) return;
-
-//         iframeDoc.open();
-//         iframeDoc.close();
-//         pbjs.renderAd(iframeDoc, winningAd.adId || winningAd.ad || winningAd.adm || winningAd.requestId);
-
-//       }
-//     });
-//   });
-// }
 function auction() {
   window.pbjs = window.pbjs || {};
   window.pbjs.que = window.pbjs.que || [];
