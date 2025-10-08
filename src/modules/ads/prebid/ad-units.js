@@ -1,25 +1,25 @@
-const API = import.meta.env.VITE_BACKEND;
+// const API = import.meta.env.VITE_BACKEND;
 
 export const AD_UNITS = [
-  {
-    code: 'div-gpt-bottom',
-    mediaTypes: {
-      banner: {
-        sizes: [[300, 250], [400, 250]]
-      }
-    },
-    bids: [
-      {
-        bidder: 'balitska',
-        params: {
-          endpoint: `${API}/balitska/get`,
-          // adType: "BANNER",
-          // placementId: 'div-gpt-top',
+  // {
+  //   code: 'div-gpt-bottom',
+  //   mediaTypes: {
+  //     banner: {
+  //       sizes: [[300, 250], [400, 250]]
+  //     }
+  //   },
+  //   bids: [
+  //     {
+  //       bidder: 'balitska',
+  //       params: {
+  //         endpoint: `${API}/balitska/get`,
+  //         // adType: "BANNER",
+  //         // placementId: 'div-gpt-top',
 
-        }
-      }
-    ]
-  },
+  //       }
+  //     }
+  //   ]
+  // },
   {
     code: 'ad-slot',
     mediaTypes: {

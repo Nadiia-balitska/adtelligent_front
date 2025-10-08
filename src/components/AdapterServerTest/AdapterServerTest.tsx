@@ -146,21 +146,7 @@ export default function AdTester() {
             )}
           </div>
 
-          <div className="rounded-xl border p-3">
-            <h4 className="mb-2 font-semibold">Креатив, що буде показаний</h4>
-
-            {creativeIsImage ? (
-              <img
-                src={creativeSrcAbs!}
-                alt="ad creative"
-                width={ad.w}
-                height={ad.h}
-                style={{ maxWidth: "100%", height: "auto", objectFit: "contain" }}
-              />
-            ) : (
-              <div dangerouslySetInnerHTML={{ __html: ad.adm }} />
-            )}
-          </div>
+          
         </div>
       )}
     </div>
