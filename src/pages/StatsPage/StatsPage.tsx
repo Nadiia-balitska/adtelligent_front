@@ -1,6 +1,7 @@
 /** biome-ignore lint/correctness/useExhaustiveDependencies: useEffect dependencies intentionally omitted */
+/** biome-ignore-all lint/suspicious/noRedeclare: <explanation> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useCallback, useEffect, useMemo, useState, type JSX } from "react";
 import type {
   DimensionKey,
   FieldDef,
@@ -18,11 +19,13 @@ type ReportResponse = {
   rows: StatRow[];
 };
 
+
 const API_BASE =
-  (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") || "";
+  ((import.meta.env?.VITE_BACKEND as string | undefined)) || "";
+
 
 const ALL_FIELDS: FieldDef[] = [
-  { key: "hour", label: "Hour" },
+  { key: "hour", label: "Hour" }, 
   { key: "unique_users", label: "Unique Users" },
   { key: "auctions", label: "Auctions" },
   { key: "bids", label: "Bids" },
@@ -40,9 +43,15 @@ const ALL_DIMENSIONS: { key: DimensionKey; label: string }[] = [
   { key: "geo", label: "GEO" },
 ];
 
+function monthRangeISO(d = new Date()) {
+  const from = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+  const to = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
+  return { from, to };
+}
+
 const DEFAULT_FILTERS: Filters = {
-  dateFrom: "2025-03-01",
-  dateTo: "2025-03-31",
+  dateFrom: monthRangeISO().from,
+  dateTo: monthRangeISO().to,
   report: "date",
 };
 
@@ -50,9 +59,9 @@ const LOCAL_STORAGE_VIEWS_KEY = "stats_views_v1";
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== "") search.set(key, String(value));
-  });
+  }
   return search.toString();
 }
 
@@ -66,8 +75,8 @@ async function fetchReport(
   const query = buildQuery({
     date_from: filters.dateFrom,
     date_to: filters.dateTo,
-    dimensions: dimensions.join(","),
-    fields: fields.join(","),
+    dimensions: dimensions.join(","),                 
+    fields: fields.join(","),                         
     event: filters.event,
     bidder: filters.bidder,
     creativeId: filters.creativeId,
@@ -79,7 +88,9 @@ async function fetchReport(
     page_size: pageSize,
   });
 
-  const response = await fetch(`${API_BASE}/stat/report?${query}`);
+  const url = `${API_BASE}/stat/report?${query}`;
+
+  const response = await fetch(url, { cache: "no-store", credentials: "omit" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json() as Promise<ReportResponse>;
 }
@@ -109,7 +120,7 @@ function buildExportUrl(
 export default function StatsPage(): JSX.Element {
   const [selectedDimensions, setSelectedDimensions] = useState<DimensionKey[]>(["hour", "bidder"]);
   const [selectedFields, setSelectedFields] = useState<FieldKey[]>([
-    "hour",
+    "hour", // у запит не підемо з "hour" як метрикою, лише як колонкою у гріді
     "auctions",
     "bids",
     "wins",
@@ -131,9 +142,10 @@ export default function StatsPage(): JSX.Element {
   );
   const [viewName, setViewName] = useState<string>("");
 
-  async function loadReport(): Promise<void> {
-    setIsLoading(true);
+  /** Стабільний loader + невеликий debounce у useEffect нижче */
+  const loadReport = useCallback(async () => {
     try {
+      setIsLoading(true);
       const data = await fetchReport(
         selectedDimensions,
         selectedFields.filter((f) => f !== "hour"),
@@ -143,17 +155,22 @@ export default function StatsPage(): JSX.Element {
       );
       setReportRows(data.rows);
       setTotalRows(data.total);
-    } catch {
+    } catch (e) {
+      console.error("Failed to load report:", e);
       setReportRows([]);
       setTotalRows(0);
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [selectedDimensions, selectedFields, filters, currentPage, pageSize]);
 
+  /** Debounce запиту (уникаємо «петлі» та лавини запитів) */
   useEffect(() => {
-    void loadReport();
-  }, [selectedDimensions, selectedFields, filters, currentPage, pageSize, loadReport]);
+    const t = setTimeout(() => {
+      void loadReport();
+    }, 250);
+    return () => clearTimeout(t);
+  }, [loadReport]);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalRows / pageSize)),

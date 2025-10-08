@@ -1,6 +1,5 @@
 import { lazy, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-// import { initAds } from "virtual:ads";
 import "./App.css";
 import Layout from "./components/Layout/Layout";
 import "virtual:plugins"; 
@@ -13,10 +12,7 @@ import NewsFeed from "./components/News/NewsFeed";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AdminPage from "./components/AdminPage/AdminPage";
 
-declare module "./modules/ads/prebid/init-prebid.js" {
-  export function initAds(): void;
-}
-import { initAds } from "./modules/ads/prebid/init-prebid.js";
+
 
 
 const Login = lazy(() => import("./pages/auth/Login"));
@@ -24,12 +20,6 @@ const Register = lazy(() => import("./pages/auth/Register"));
 
 
 function App() {
-
-	useEffect(() => { 
-
-    initAds();
-
-	 }, []);
 	return (
 			    
 	<Routes>

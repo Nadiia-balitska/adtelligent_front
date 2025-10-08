@@ -6,7 +6,6 @@ import type { AdRequestPayload, AdResponse } from "../../types/add-server";
 
 
 
-
 function extractIframeSrc(adm: string): string | null {
   const m = adm.match(/src="([^"]+)"/i);
   return m?.[1] ?? null;

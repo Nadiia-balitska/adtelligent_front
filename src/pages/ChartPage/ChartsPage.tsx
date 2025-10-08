@@ -10,13 +10,18 @@ type ReportResponse = {
 };
 
 const API_BASE =
-  (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") || "";
+  (import.meta.env?.VITE_BACKEND as string | undefined)?.replace(/\/+$/, "") || "";
+
+const today = new Date();
+const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
 const DEFAULT_FILTERS: Filters = {
-  dateFrom: "2025-03-01",
-  dateTo: "2025-03-31",
+  dateFrom: startOfMonth.toISOString().slice(0, 10), // YYYY-MM-DD
+  dateTo: endOfMonth.toISOString().slice(0, 10),
   report: "date",
 };
+
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams();
